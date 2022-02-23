@@ -38,7 +38,7 @@ namespace Impl {
   KOKKOS_INLINE_FUNCTION AmanziGeometry::Point
   GravitySpecialDirection(const AmanziMesh::Mesh* const mesh, int f)
   {
-    AmanziMesh::Entity_ID_View cells;
+    Kokkos::View<AmanziMesh::Entity_ID*> cells;
     mesh->face_get_cells(f, AmanziMesh::Parallel_type::ALL, cells);
     int ncells = cells.size();
 

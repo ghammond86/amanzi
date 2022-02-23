@@ -407,7 +407,7 @@ void MFD3D::SimplexExchangeVariables_(DenseMatrix<>& T, int kp, int ip)
 void AddGradient(const Teuchos::RCP<const AmanziMesh::Mesh>& mesh, int c, DenseMatrix<>& N)
 {
   Entity_ID_List  nodes;
-  AmanziMesh::Entity_ID_View edges; 
+  Kokkos::View<AmanziMesh::Entity_ID*> edges; 
 
   mesh->cell_get_edges(c, edges);
   int nedges = edges.size();

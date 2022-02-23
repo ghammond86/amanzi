@@ -449,14 +449,14 @@ MeshCache::cache_cell_get_faces_and_bisectors_() const {
   int entries_size = 0; 
   for(int i = 0 ; i < ncells; ++i){
     Kokkos::View<Entity_ID*,Kokkos::HostSpace> faceids;
-    cell_get_faces_host(i, faceids);
+    cell_get_faces(i, faceids);
     entries_size += faceids.size(); 
   }
 
   cell_faces_bisectors_.entries.resize(entries_size); 
   for(int i = 0 ; i < ncells; ++i){
     Kokkos::View<Entity_ID*,Kokkos::HostSpace> faceids;
-    cell_get_faces_host(i, faceids);
+    cell_get_faces(i, faceids);
     AmanziGeometry::Point cc = cell_centroid_host(i);
     cell_faces_bisectors_.row_map.view_host()(i + 1) = faceids.extent(0) +
        cell_faces_bisectors_.row_map.view_host()(i);
@@ -600,7 +600,7 @@ MeshCache::compute_cell_geometry_(const Entity_ID cellid, double* volume,
     Kokkos::View<int*,Kokkos::HostSpace> fdirs;
     std::vector<AmanziGeometry::Point> fcoords, ccoords, cfcoords; 
 
-    cell_get_faces_and_dirs_host(cellid, faces, fdirs);
+    cell_get_faces_and_dirs(cellid, faces, fdirs);
 
     int nf = faces.extent(0);
     nfnodes.resize(nf);
@@ -693,7 +693,7 @@ MeshCache::compute_face_geometry_(
       Kokkos::View<int*,Kokkos::HostSpace> cellfacedirs;
       int dir = 1;
 
-      cell_get_faces_and_dirs_host(cellids(i), cellfaceids, cellfacedirs);
+      cell_get_faces_and_dirs(cellids(i), cellfaceids, cellfacedirs);
 
       bool found = false;
       for (int j = 0; j < cellfaceids.extent(0); j++) {
@@ -729,8 +729,8 @@ MeshCache::compute_face_geometry_(
       normals.resize(cellids.size()); 
       // normals->resize(cellids.size(), AmanziGeometry::Point(0.0, 0.0));
       for (int i = 0; i < cellids.extent(0); i++) {
-        Kokkos::View<Entity_ID*> cellfaceids;
-        Kokkos::View<int*> cellfacedirs;
+        Kokkos::View<Entity_ID*,Kokkos::HostSpace> cellfaceids;
+        Kokkos::View<int*,Kokkos::HostSpace> cellfacedirs;
         int dir = 1;
 
         cell_get_faces_and_dirs(cellids(i), cellfaceids, cellfacedirs);
@@ -769,8 +769,8 @@ MeshCache::compute_face_geometry_(
 
       normals.resize(cellids.extent(0),  AmanziGeometry::Point(0.0, 0.0, 0.0)); 
       for (int i = 0; i < cellids.extent(0); i++) {
-        Kokkos::View<Entity_ID*> cellfaceids;
-        Kokkos::View<int*> cellfacedirs;
+        Kokkos::View<Entity_ID*,Kokkos::HostSpace> cellfaceids;
+        Kokkos::View<int*,Kokkos::HostSpace> cellfacedirs;
         // int dir = 1; un-used
 
         cell_get_faces_and_dirs(cellids(i), cellfaceids, cellfacedirs);
@@ -826,23 +826,6 @@ MeshCache::compute_edge_geometry_(const Entity_ID edgeid, double* edge_length,
   return 0;
 }
 
-// Volume/Area of cell
-double
-MeshCache::cell_volume(const Entity_ID cellid, const bool recompute) const
-{
-  if (!cell_geometry_precomputed_) {
-    compute_cell_geometric_quantities_();
-    return cell_volumes_.view_host()(cellid);
-  } else {
-    if (recompute) {
-      double volume;
-      AmanziGeometry::Point centroid(mesh_->space_dimension());
-      compute_cell_geometry_(cellid, &volume, &centroid);
-      return volume;
-    } else
-      return cell_volumes_.view_host()(cellid);
-  }
-}
 
 // Length of an edge
 double
@@ -927,9 +910,9 @@ MeshCache::point_in_cell(const AmanziGeometry::Point& p,
     // and send it into the polyhedron volume and centroid
     // calculation routine
     int nf;
-    Kokkos::View<Entity_ID*> faces;
+    Kokkos::View<Entity_ID*,Kokkos::HostSpace> faces;
     std::vector<unsigned int> nfnodes;
-    Kokkos::View<int*> fdirs;
+    Kokkos::View<int*,Kokkos::HostSpace> fdirs;
     std::vector<AmanziGeometry::Point> cfcoords;
 
     cell_get_faces_and_dirs(cellid, faces, fdirs);
@@ -1138,8 +1121,9 @@ MeshCache::build_single_column_(int colnum, Entity_ID top_face) const
     (mesh_->entity_get_ptype(CELL, cur_cell) == Parallel_type::GHOST);
   Entity_ID bot_face = -1;
   Entity_ID_List colcells, colfaces;
-  Kokkos::View<Entity_ID*> cfaces, fcells2;
-  Kokkos::View<int*> cfdirs;
+  Kokkos::View<Entity_ID*,Kokkos::HostSpace> cfaces;
+  Kokkos::View<Entity_ID*> fcells2;
+  Kokkos::View<int*,Kokkos::HostSpace> cfdirs;
 
   AmanziGeometry::Point negzvec(mesh_->space_dimension());
   if (mesh_->space_dimension() == 2)

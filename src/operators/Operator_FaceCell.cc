@@ -60,7 +60,7 @@ int Operator_FaceCell::ApplyMatrixFreeOp(const Op_Cell_FaceCell& op,
     "Operator_FaceCell::ApplyMatrixFreeOp Cell_FaceCell",
     ncells_owned, 
     KOKKOS_LAMBDA(const int& c){
-      AmanziMesh::Entity_ID_View faces;
+      Kokkos::View<AmanziMesh::Entity_ID*,Kokkos::DefaultExecutionSpace> faces;
       mc.cell_get_faces(c, faces);
       int nfaces = faces.size();
 
@@ -218,7 +218,7 @@ void Operator_FaceCell::SymbolicAssembleMatrixOp(const Op_Cell_FaceCell& op,
   const auto cell_row_inds = map.GhostIndices<MirrorHost>(my_block_row, "cell", 0);
   const auto cell_col_inds = map.GhostIndices<MirrorHost>(my_block_col, "cell", 0);
 
-  AmanziMesh::Entity_ID_View faces;
+  Kokkos::View<AmanziMesh::Entity_ID*,Kokkos::HostSpace> faces;
   for (int c = 0; c != ncells_owned; ++c) {
     mesh_->cell_get_faces(c, faces);
     int nfaces = faces.size();
@@ -250,7 +250,7 @@ void Operator_FaceCell::SymbolicAssembleMatrixOp(const Op_Cell_Face& op,
   const auto face_col_inds = map.GhostIndices<MirrorHost>(my_block_col, "face", 0);
 
   for (int c = 0; c != ncells_owned; ++c) {
-    AmanziMesh::Entity_ID_View faces;
+    Kokkos::View<AmanziMesh::Entity_ID*,Kokkos::HostSpace> faces;
     mesh_->cell_get_faces(c, faces);
     int nfaces = faces.size();
 
@@ -341,7 +341,7 @@ void Operator_FaceCell::AssembleMatrixOp(const Op_Cell_FaceCell& op,
       "Operator_FaceCell::AssembleMatrixOp::Cell_FaceCell",
       ncells_owned,
       KOKKOS_LAMBDA(const int& c) {
-        AmanziMesh::Entity_ID_View faces;
+        Kokkos::View<AmanziMesh::Entity_ID*,Kokkos::DefaultExecutionSpace> faces;
         mesh->cell_get_faces(c, faces);
         int nfaces = faces.extent(0);
 

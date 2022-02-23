@@ -20,14 +20,7 @@
 #include "PreconditionerHypre.hh"
 
 
-// Temporary
-// Useful functions to trace NVIDIA calls 
-#if 0 
-#include <nvToolsExt.h> 
-#else
-void nvtxRangePush(const char*){}
-void nvtxRangePop(){}
-#endif 
+#include "cuda_decl.h"
 
 namespace Amanzi {
 
@@ -41,8 +34,8 @@ int PreconditionerHypre::applyInverse(const Vector_type& v, Vector_type& hv) con
   nvtxRangePush(__FUNCTION__);
   IfpHypre_->apply(v, hv);
   returned_code_ = 0;
-  return returned_code_;
   nvtxRangePop();
+  return returned_code_;
 }
 
 

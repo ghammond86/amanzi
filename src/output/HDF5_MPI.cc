@@ -222,7 +222,7 @@ void HDF5_MPI::writeMesh(const double time, const int iteration)
   // -- pass 1: count total connections, total entities
   int local_conn(0); // length of MixedElements
   int local_entities(0); // length of ElementMap (num_cells if non-POLYHEDRON mesh)
-  AmanziMesh::Entity_ID_View faces;
+  Kokkos::View<AmanziMesh::Entity_ID*,Kokkos::HostSpace> faces;
   AmanziMesh::Entity_ID_List nodes;
 
   for (int c=0; c!=ncells_local; ++c) {

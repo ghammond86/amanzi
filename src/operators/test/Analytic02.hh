@@ -59,7 +59,7 @@ class Analytic02 : public AnalyticBase {
 
   virtual std::string name() const override { return "Analytic02"; }
   
- const __device__ Amanzi::WhetStone::Tensor<DefaultExecutionSpace>&
+ const KOKKOS_INLINE_FUNCTION Amanzi::WhetStone::Tensor<DefaultExecutionSpace>&
   TensorDiffusivity(const Amanzi::AmanziGeometry::Point& p, double t) const override {
     return K_device_;
   }

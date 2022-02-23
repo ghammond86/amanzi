@@ -395,8 +395,9 @@ void PDE_DiffusionFV::UpdateFlux(const Teuchos::Ptr<const CompositeVector>& solu
       "PDE_DiffusionFV::UpdateFlux outer loop",
       ncells_owned,
       KOKKOS_LAMBDA(const int c) {
-        AmanziMesh::Entity_ID_View cells, faces;
-        AmanziMesh::Entity_Dir_View dirs;
+        AmanziMesh::Entity_ID_View cells; 
+        Kokkos::View<AmanziMesh::Entity_ID*,Kokkos::DefaultExecutionSpace> faces;
+        Kokkos::View<int*,Kokkos::DefaultExecutionSpace> dirs;
         m->cell_get_faces_and_dirs(c, faces, dirs);
         int nfaces = faces.size();
 

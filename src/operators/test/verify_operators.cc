@@ -247,6 +247,10 @@ TEST(Verify_Mesh_and_Operators) {
         .set<int>("verbosity", 1)
         .set<int>("coarsening type", 8) /* 8: PMIS */
         .set<int>("interpolation type", 6) 
+        //.set<int>("max coarse size", 10000000) 
+        //.set<int>("max multigrid levels", 1)
+
+
         /* From Hypre 2.22.0 Manual */
         /*3:  direct
           15: BAMG-direct

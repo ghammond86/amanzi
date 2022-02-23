@@ -26,8 +26,8 @@ namespace WhetStone {
 int DeRham_Face::L2consistency(
     int c, const Tensor<>& K, DenseMatrix<>& N, DenseMatrix<>& Mc, bool symmetry)
 {
-  AmanziMesh::Entity_ID_View faces;
-  Kokkos::View<int*> dirs;
+  Kokkos::View<AmanziMesh::Entity_ID*,Kokkos::HostSpace> faces;
+  Kokkos::View<int*,Kokkos::HostSpace> dirs;
 
   mesh_->cell_get_faces_and_dirs(c, faces, dirs);
   int nfaces = faces.size();
@@ -37,7 +37,7 @@ int DeRham_Face::L2consistency(
 
   AmanziGeometry::Point v1(d_), v2(d_);
   const AmanziGeometry::Point& cm = mesh_->cell_centroid(c);
-  double volume = mesh_->cell_volume(c);
+  double volume = mesh_->cell_volume<Kokkos::HostSpace>(c);
 
   Tensor<> Kinv(K);
   Kinv.Inverse();
@@ -94,8 +94,8 @@ int DeRham_Face::MassMatrix(int c, const Tensor<>& K, DenseMatrix<>& M)
 int DeRham_Face::L2consistencyInverse(
     int c, const Tensor<>& K, DenseMatrix<>& R, DenseMatrix<>& Wc, bool symmetry)
 {
-  AmanziMesh::Entity_ID_View faces;
-  Kokkos::View<int*> dirs;
+  Kokkos::View<AmanziMesh::Entity_ID*,Kokkos::HostSpace> faces;
+  Kokkos::View<int*,Kokkos::HostSpace> dirs;
 
   mesh_->cell_get_faces_and_dirs(c, faces, dirs);
   int nfaces = faces.size();
@@ -112,7 +112,7 @@ int DeRham_Face::L2consistencyInverse(
 
   // populate matrix W_0
   AmanziGeometry::Point v1(d_);
-  double volume = mesh_->cell_volume(c);
+  double volume = mesh_->cell_volume<Kokkos::HostSpace>(c);
 
   for (int i = 0; i < nfaces; i++) {
     int f = faces[i];

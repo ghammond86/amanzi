@@ -32,8 +32,8 @@ No parameters are required.
 #include "exceptions.hh"
 #include "Preconditioner.hh"
 
-#include "nvToolsExt.h"
 
+#include "cuda_decl.h"
 
 namespace Amanzi {
 namespace AmanziSolvers {
@@ -43,56 +43,20 @@ class PreconditionerDiagonal : public Preconditioner {
   virtual void set_inverse_parameters(Teuchos::ParameterList& plist) override final {};
   virtual void initializeInverse() override final {}
   virtual void computeInverse() override final {
-    nvtxRangePushA("PreconditionerDiagonal::computeInverse");    
-    #ifdef OUTPUT_CUDA 
-    
-    Teuchos::RCP<Teuchos::FancyOStream> out = getFancyOStream (Teuchos::rcpFromRef (std::cout));
-    h_->describe(*out,Teuchos::VERB_EXTREME);
-    #endif 
+    nvtxRangePush("PreconditionerDiagonal::computeInverse");    
     diagonal_ = Teuchos::rcp(new Vector_type(h_->getRowMap()));
     diagonal_->putScalar(0.);
     h_->getLocalDiagCopy(*diagonal_);
-
-    #ifdef OUTPUT_CUDA
-    {
-      std::cout<<"getLocalDiagCopy: "; 
-    auto diag = diagonal_->getLocalViewDevice ();
-    Kokkos::parallel_for(
-      "",
-      diag.extent(0), 
-      KOKKOS_LAMBDA(const int i){
-        printf("%.4f - ",diag(i,0)); 
-      }
-    );  
-    Kokkos::fence(); 
-    std::cout<<std::endl;
-    }
-    #endif 
     diagonal_->reciprocal(*diagonal_);
-
     nvtxRangePop();
   };
 
   virtual int applyInverse(const Vector_type& v, Vector_type& hv) const override final {
-    nvtxRangePushA("PreconditionerDiagonal::applyInverse");
+    nvtxRangePush("PreconditionerDiagonal::applyInverse");
 
     AMANZI_ASSERT(diagonal_.get()); // Compute called
-    auto diag = diagonal_->getLocalViewDevice ();
-    #ifdef OUTPUT_CUDA
-    std::cout<<"Diagonal : applyInverse"<<std::endl;
-    Kokkos::parallel_for(
-      "",
-      diag.extent(0), 
-      KOKKOS_LAMBDA(const int i){
-        printf("%.4f - ",diag(i,0)); 
-      }
-    );  
-    Kokkos::fence(); 
-    std::cout<<std::endl;
-    #endif 
     hv.elementWiseMultiply(1., v, *diagonal_, 0.);
     nvtxRangePop();
-
     return 0;
   }
 

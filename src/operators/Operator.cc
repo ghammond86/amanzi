@@ -340,36 +340,6 @@ int Operator::ComputeNegativeResidual(const CompositeVector& u, CompositeVector&
 ******************************************************************* */
 int Operator::apply(const CompositeVector& X, CompositeVector& Y, double scalar) const
 {
-
-  #ifdef OUTPUT_CUDA 
-  {
-  std::cout<<"X"; 
-  auto x = X.ViewComponent("cell",true); 
-  Kokkos::parallel_for(
-    "",
-    x.extent(0), 
-    KOKKOS_LAMBDA(const int i){printf("%.4f - ",x(i,0));}
-  );
-  Kokkos::fence(); 
-  std::cout<<std::endl;
-  }
-  #endif 
-
-#ifdef OUTPUT_CUDA 
-{
-  std::cout<<"Y"; 
-  auto y = Y.ViewComponent("cell",true); 
-  Kokkos::parallel_for(
-    "",
-    y.extent(0), 
-    KOKKOS_LAMBDA(const int i){printf("%.4f - ",y(i,0));}
-  );
-  Kokkos::fence(); 
-  std::cout<<std::endl;
-  }
-
-  std::cout<<"apply: operator"<<std::endl;
-#endif 
   X.ScatterMasterToGhosted();
 
   // initialize ghost elements

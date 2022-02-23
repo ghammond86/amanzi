@@ -110,8 +110,8 @@ int main(int argc, char* argv[]){
     "identity", 
     "diagonal", 
     "ifpack2: ILUT",
-    "ifpack2: RILUK",
-    "ifpack2: KSPILUK" 
+    "ifpack2: FAST_ILU"
+    //"ifpack2: KSPILUK" 
     //"boomer amg", 
     //"euclid",
     //"ml"

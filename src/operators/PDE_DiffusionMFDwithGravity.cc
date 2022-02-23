@@ -61,8 +61,8 @@ void PDE_DiffusionMFDwithGravity::AddGravityToRHS_()
           "PDE_DiffusionMFDwithGravity::AddGravityToRHS_",
           ncells_owned,
           KOKKOS_LAMBDA(const int& c) {
-            AmanziMesh::Entity_ID_View faces;
-            Kokkos::View<int*> dirs;            
+            Kokkos::View<AmanziMesh::Entity_ID*,Kokkos::DefaultExecutionSpace> faces;
+            Kokkos::View<int*,Kokkos::DefaultExecutionSpace> dirs;            
             mesh->cell_get_faces_and_dirs(c, faces, dirs);
             int nfaces = faces.size();
 
@@ -165,7 +165,7 @@ void PDE_DiffusionMFDwithGravity::UpdateFlux(const Teuchos::Ptr<const CompositeV
         "PDE_DiffusionMFDwithGravity::UpdateFlux",
         ncells_owned,
         KOKKOS_LAMBDA(const int& c) {
-          AmanziMesh::Entity_ID_View faces;
+          Kokkos::View<AmanziMesh::Entity_ID*,Kokkos::DefaultExecutionSpace> faces;
           mesh->cell_get_faces(c, faces);
           int nfaces = faces.extent(0);
 

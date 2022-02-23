@@ -102,6 +102,7 @@ using double_type = double;
 using int_type = int;
 using LO = int;
 using GO = int;
+using NT = Kokkos::Compat::KokkosCudaWrapperNode; 
 
 // Tpetra uses Teuchos Comm
 typedef Teuchos::Comm<int> Comm_type;

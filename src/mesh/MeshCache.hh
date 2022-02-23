@@ -69,25 +69,34 @@ class MeshCache {
   // send-receive protocols and mesh query operators are designed, a side
   // effect of this is that master and ghost entities will have the same
   // hierarchical topology.
+
+  template<class T, class S> 
+  struct view_getter{
+    template<class DV> 
+    static KOKKOS_INLINE_FUNCTION Kokkos::View<T,S> get_view(DV& dv){
+      return dv.view_device(); 
+    }
+  };
+
+  template<class T>
+  struct view_getter<T,Kokkos::HostSpace>{
+    template<class DV> 
+    static KOKKOS_INLINE_FUNCTION 
+    Kokkos::View<T,Kokkos::HostSpace> get_view(DV& dv){
+      return dv.view_host(); 
+    }
+  };
+
+  template<class S>
   KOKKOS_INLINE_FUNCTION void
-  cell_get_faces(const Entity_ID cellid,
-                 Kokkos::View<Entity_ID*>& faceids) const
-  {
-    assert(cell2face_info_cached_);
+  cell_get_faces(const Entity_ID cellid, 
+                Kokkos::View<Entity_ID*,S>& faceids) const{
+    auto e = view_getter<Entity_ID*,S>::get_view(cell_face_ids_.entries); 
+    auto r = view_getter<Entity_ID*,S>::get_view(cell_face_ids_.row_map); 
     faceids =
-      Kokkos::subview(cell_face_ids_.entries.view_device(),
-                      Kokkos::make_pair(cell_face_ids_.row_map.view_device()(cellid),
-                                        cell_face_ids_.row_map.view_device()(cellid + 1)));
-  }
-  void
-  cell_get_faces_host(const Entity_ID cellid,
-                 Kokkos::View<Entity_ID*, Kokkos::HostSpace>& faceids) const
-  {
-    assert(cell2face_info_cached_);
-    faceids =
-      Kokkos::subview(cell_face_ids_.entries.view_host(),
-                      Kokkos::make_pair(cell_face_ids_.row_map.view_host()(cellid),
-                                        cell_face_ids_.row_map.view_host()(cellid + 1)));
+      Kokkos::subview(e,
+                  Kokkos::make_pair(r(cellid),
+                                      r(cellid + 1)));              
   }
 
   // Get faces of a cell and directions in which the cell uses the face
@@ -102,37 +111,28 @@ class MeshCache {
   // and -1 if face normal points into cell
   // In 2D, direction is 1 if face/edge is defined in the same
   // direction as the cell polygon, and -1 otherwise
+
+
+  template<class S>
   KOKKOS_INLINE_FUNCTION void
-  cell_get_faces_and_dirs(const Entity_ID cellid,
-                          Kokkos::View<Entity_ID*>& faceids,
-                          Kokkos::View<int*>& face_dirs) const
-  {
-    assert(cell2face_info_cached_);
+  cell_get_faces_and_dirs(const Entity_ID cellid, 
+                Kokkos::View<Entity_ID*,S>& faceids,
+                Kokkos::View<int*,S>& face_dirs) const{
+
+    auto e = view_getter<Entity_ID*,S>::get_view(cell_face_ids_.entries); 
+    auto r = view_getter<Entity_ID*,S>::get_view(cell_face_ids_.row_map); 
+    auto de = view_getter<Entity_ID*,S>::get_view(cell_face_dirs_.entries); 
+    auto dr = view_getter<Entity_ID*,S>::get_view(cell_face_dirs_.row_map); 
     faceids =
-      Kokkos::subview(cell_face_ids_.entries.view_device(),
-                      Kokkos::make_pair(cell_face_ids_.row_map.view_device()(cellid),
-                                        cell_face_ids_.row_map.view_device()(cellid + 1)));
+      Kokkos::subview(e,
+                      Kokkos::make_pair(r(cellid),
+                                        r(cellid + 1)));
     face_dirs =
-      Kokkos::subview(cell_face_dirs_.entries.view_device(),
-                      Kokkos::make_pair(cell_face_dirs_.row_map.view_device()(cellid),
-                                        cell_face_dirs_.row_map.view_device()(cellid + 1)));
+      Kokkos::subview(de,
+                      Kokkos::make_pair(dr(cellid),
+                                        dr(cellid + 1)));           
   }
-  void
-  cell_get_faces_and_dirs_host(const Entity_ID cellid,
-                          Kokkos::View<Entity_ID*,Kokkos::HostSpace>& faceids,
-                          Kokkos::View<int*,Kokkos::HostSpace>& face_dirs) const
-  {
-    assert(cell2face_info_cached_);
-    faceids =
-      Kokkos::subview(cell_face_ids_.entries.view_host(),
-                      Kokkos::make_pair(cell_face_ids_.row_map.view_host()(cellid),
-                                        cell_face_ids_.row_map.view_host()(cellid + 1)));
-    face_dirs =
-      Kokkos::subview(cell_face_dirs_.entries.view_host(),
-                      Kokkos::make_pair(cell_face_dirs_.row_map.view_host()(cellid),
-                                        cell_face_dirs_.row_map.view_host()(cellid + 1)));
-  }
-  
+
   // Get the bisectors, i.e. vectors from cell centroid to face centroids.
   KOKKOS_INLINE_FUNCTION void 
   cell_get_faces_and_bisectors(const Entity_ID cellid, 
@@ -343,17 +343,13 @@ class MeshCache {
   // Mesh entity geometry
   // --------------------
 
-  // Volume/Area of cell
-  double cell_volume(const Entity_ID cellid, const bool recompute) const;
-  KOKKOS_INLINE_FUNCTION double cell_volume(const Entity_ID cellid) const
-  {
-    return cell_volumes_.view_device()(cellid);
-  }
-  double cell_volume_host(const Entity_ID cellid) const
-  {
-    return cell_volumes_.view_host()(cellid);
-  }
 
+  template<class S>
+  KOKKOS_INLINE_FUNCTION double
+  cell_volume(const Entity_ID cellid) const{
+    auto v = view_getter<double*,S>::get_view(cell_volumes_); 
+    return v(cellid);
+  }
   // Area/length of face
   KOKKOS_INLINE_FUNCTION double
   face_area(const Entity_ID faceid, const bool recompute = false) const

@@ -231,7 +231,7 @@ void PDE_Accumulation::CalculateEntityVolume_(
     auto vol = volume.ViewComponent(name); 
 
     for (int c = 0; c != ncells_owned; ++c) {
-      vol(c,0) = mesh_->cell_volume(c); 
+      vol(c,0) = mesh_->cell_volume<Kokkos::HostSpace>(c); 
     }
 
   } else if (name == "face" && volume.HasComponent("face")) {
@@ -251,7 +251,7 @@ void PDE_Accumulation::CalculateEntityVolume_(
       int nedges = edges.size();
 
       for (int i = 0; i < nedges; i++) {
-        vol(0,edges[i]) += mesh_->cell_volume(c) / nedges; 
+        vol(0,edges[i]) += mesh_->cell_volume<Kokkos::HostSpace>(c) / nedges; 
       }
     }
     volume.GatherGhostedToMaster(name);

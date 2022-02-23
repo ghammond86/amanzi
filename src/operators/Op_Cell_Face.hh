@@ -31,7 +31,7 @@ class Op_Cell_Face : public Op {
     A = DenseMatrix_Vector(ncells_owned); 
 
     for (int c=0; c!=ncells_owned; ++c) {
-      AmanziMesh::Entity_ID_View faces;
+      Kokkos::View<AmanziMesh::Entity_ID*,Kokkos::HostSpace> faces;
       mesh->cell_get_faces(c, faces);      // This perform the prefix_sum
       int nfaces = faces.extent(0); 
       A.set_shape(c, nfaces, nfaces);
@@ -57,7 +57,7 @@ class Op_Cell_Face : public Op {
           // Extract matrix
           auto lA = A[c];
 
-          AmanziMesh::Entity_ID_View faces;
+          Kokkos::View<AmanziMesh::Entity_ID*,Kokkos::DefaultExecutionSpace> faces;
           mesh_->cell_get_faces(c, faces);
           int nfaces = faces.extent(0);
           for (int m=0; m!=nfaces; ++m)
@@ -91,7 +91,7 @@ class Op_Cell_Face : public Op {
         "Op_Cell_FaceCell::Rescale",
         A.size(), 
         KOKKOS_LAMBDA(const int& c){
-          AmanziMesh::Entity_ID_View faces;
+          Kokkos::View<AmanziMesh::Entity_ID*,Kokkos::DefaultExecutionSpace> faces;
           mesh_->cell_get_faces(c, faces);
           auto lA = A[c]; 
           for (int n = 0; n != faces.size(); ++n) {

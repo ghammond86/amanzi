@@ -256,9 +256,10 @@ class Mesh {
   // send-receive protocols and mesh query operators are designed, a side
   // effect of this is that master and ghost entities will have the same
   // hierarchical topology.
+  template<class S>
   KOKKOS_INLINE_FUNCTION void
   cell_get_faces(const Entity_ID cellid,
-                 Kokkos::View<Entity_ID*>& faceids) const
+                 Kokkos::View<Entity_ID*,S>& faceids) const
   {
     mesh_cache_.cell_get_faces(cellid,faceids); 
   }
@@ -275,10 +276,11 @@ class Mesh {
   // and -1 if face normal points into cell
   // In 2D, direction is 1 if face/edge is defined in the same
   // direction as the cell polygon, and -1 otherwise
+  template<typename S> 
   KOKKOS_INLINE_FUNCTION void
   cell_get_faces_and_dirs(const Entity_ID cellid,
-                          Kokkos::View<Entity_ID*>& faceids,
-                          Kokkos::View<int*>& face_dirs) const
+                          Kokkos::View<Entity_ID*,S>& faceids,
+                          Kokkos::View<int*,S>& face_dirs) const
   {
     mesh_cache_.cell_get_faces_and_dirs(cellid,faceids,face_dirs); 
   }
@@ -476,20 +478,10 @@ class Mesh {
   cell_get_coordinates(const Entity_ID cellid,
                        std::vector<AmanziGeometry::Point>& ccoords) const = 0;
 
-  // Volume/Area of cell
-  double cell_volume(const Entity_ID cellid, const bool recompute) const
-  {
-    return mesh_cache_.cell_volume(cellid,recompute); 
-  }
-
+  template<class S>
   KOKKOS_INLINE_FUNCTION double cell_volume(const Entity_ID cellid) const
   {
-    return mesh_cache_.cell_volume(cellid);
-  }
-
-  double cell_volume_host(const Entity_ID cellid) const
-  {
-    return mesh_cache_.cell_volume_host(cellid);
+    return mesh_cache_.cell_volume<S>(cellid);
   }
 
   // Area/length of face
@@ -764,7 +756,7 @@ class Mesh {
 
   void get_set_entities(const Set_ID setid, const Entity_kind kind,
                         const Parallel_type ptype,
-                        Entity_ID_View& entids) const {
+                        Kokkos::View<AmanziMesh::Entity_ID*>& entids) const {
     Entity_ID_List ids_list;
     get_set_entities(setid, kind, ptype, ids_list);
     Kokkos::resize(entids, ids_list.size());

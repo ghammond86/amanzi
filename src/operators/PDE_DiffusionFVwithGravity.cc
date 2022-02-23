@@ -73,8 +73,8 @@ void PDE_DiffusionFVwithGravity::UpdateMatrices(
         "PDE_DiffusionFVwithGravity::UpdateMatrices",
         ncells_owned,
         KOKKOS_LAMBDA(const int c) {
-          AmanziMesh::Entity_ID_View faces;
-          AmanziMesh::Entity_Dir_View dirs;
+          Kokkos::View<AmanziMesh::Entity_ID*,Kokkos::DefaultExecutionSpace> faces;
+          Kokkos::View<int*,Kokkos::DefaultExecutionSpace> dirs;
           m->cell_get_faces_and_dirs(c, faces, dirs);
           int nfaces = faces.size();
 
@@ -181,8 +181,8 @@ void PDE_DiffusionFVwithGravity::AnalyticJacobian_(const CompositeVector& u)
           }
 
           // find the face direction from cell 0 to cell 1
-          AmanziMesh::Entity_ID_View cfaces;
-          Kokkos::View<int*> fdirs;
+          Kokkos::View<AmanziMesh::Entity_ID*,Kokkos::DefaultExecutionSpace> cfaces;
+          Kokkos::View<int*,Kokkos::DefaultExecutionSpace> fdirs;
           mesh->cell_get_faces_and_dirs(cells(0), cfaces, fdirs);
           int f_index;
           for (f_index=0; f_index!=cfaces.extent(0); ++f_index) {

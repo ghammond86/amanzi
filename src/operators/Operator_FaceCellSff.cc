@@ -87,7 +87,7 @@ int Operator_FaceCellSff::ApplyInverse(const CompositeVector& X, CompositeVector
       {
         auto Tf = T.ViewComponent("face", true);
         for (int c = 0; c < ncells_owned; c++) {
-          AmanziMesh::Entity_ID_View faces;
+          Kokkos::View<AmanziMesh::Entity_ID*,Kokkos::HostSpace> faces;
           mesh_->cell_get_faces(c, faces);
           int nfaces = faces.size();
 
@@ -121,7 +121,7 @@ int Operator_FaceCellSff::ApplyInverse(const CompositeVector& X, CompositeVector
         auto Yc = Y.ViewComponent("cell", false);
         // BACKWARD SUBSTITUTION:  Yc = inv(Acc) (Xc - Acf Yf)
         for (int c = 0; c < ncells_owned; c++) {
-          AmanziMesh::Entity_ID_View faces;
+          Kokkos::View<AmanziMesh::Entity_ID*,Kokkos::HostSpace> faces;
           mesh_->cell_get_faces(c, faces);
           int nfaces = faces.size();
 
@@ -203,7 +203,7 @@ void Operator_FaceCellSff::AssembleMatrix(const SuperMap& map, MatrixFE& matrix,
 
       // populate the schur component
       for (int c = 0; c != ncells_owned; ++c) {
-        AmanziMesh::Entity_ID_View faces;
+        Kokkos::View<AmanziMesh::Entity_ID*,Kokkos::HostSpace> faces;
         mesh_->cell_get_faces(c, faces);
         int nfaces = faces.size();
 
@@ -251,7 +251,7 @@ int Operator_FaceCellSff::ApplyMatrixFreeOp(const Op_Cell_FaceCell& op,
     auto Yc = Y.ViewComponent("cell");
 
     for (int c=0; c!=ncells_owned; ++c) {
-      AmanziMesh::Entity_ID_View faces;
+      Kokkos::View<AmanziMesh::Entity_ID*,Kokkos::HostSpace> faces;
       mesh_->cell_get_faces(c, faces);
       int nfaces = faces.size();
 

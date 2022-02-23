@@ -67,7 +67,7 @@ class AnalyticBase { //: public WhetStone::WhetStoneFunction {
 
   // analytic solution for diffusion problem with gravity
   // -- tensorial diffusion coefficient
-  virtual __device__ const WhetStone::Tensor<DefaultExecutionSpace>&
+  virtual KOKKOS_INLINE_FUNCTION const WhetStone::Tensor<DefaultExecutionSpace>&
   TensorDiffusivity(const AmanziGeometry::Point& p, double t) const {
     return K_device_;
   }
@@ -173,7 +173,6 @@ void ComputeCellError(const AnalyticBase& ana,
                       double t,
                       double& pnorm, double& l2_err, double& inf_err)
 {
-  std::cout<<"AnalyticBase: Compute Cell Error"<<std::endl;
   pnorm = 0.0;
   l2_err = 0.0;
   inf_err = 0.0;
@@ -192,7 +191,7 @@ void ComputeCellError(const AnalyticBase& ana,
   for (int c = 0; c < ncells; c++) {
     const AmanziGeometry::Point& xc = mesh->cell_centroid_host(c);
     double tmp = ana.pressure_exact(xc, t);
-    double volume = mesh->cell_volume_host(c);
+    double volume = mesh->cell_volume<Kokkos::HostSpace>(c);
 
     l2_err += std::pow(tmp - p(c,0), 2.0) * volume;
     inf_err = std::max(inf_err, fabs(tmp - p(c,0)));
@@ -224,7 +223,6 @@ void ComputeFaceError(const AnalyticBase& ana,
   unorm = 0.0;
   l2_err = 0.0;
   inf_err = 0.0;
-
   auto u = u_vec.ViewComponent<MirrorHost>("face", false);
   int nfaces = mesh->num_entities(AmanziMesh::FACE, AmanziMesh::Parallel_type::OWNED);
   for (int f = 0; f < nfaces; f++) {
@@ -233,7 +231,6 @@ void ComputeFaceError(const AnalyticBase& ana,
     const AmanziGeometry::Point& xf = mesh->face_centroid_host(f);
     const AmanziGeometry::Point& velocity = ana.velocity_exact(xf, t);
     double tmp = velocity * normal;
-
     l2_err += std::pow((tmp - u(f,0)) / area, 2.0);
     inf_err = std::max(inf_err, fabs(tmp - u(f,0)) / area);
     unorm += std::pow(tmp / area, 2.0);
@@ -280,7 +277,7 @@ void ComputeNodeError(const AnalyticBase& ana,
 
   auto p = p_vec.ViewComponent<MirrorHost>("node", false);
   for (int c = 0; c < ncells; c++) {
-    double volume = mesh->cell_volume(c);
+    double volume = mesh->cell_volume<Kokkos::HostSpace>(c);
 
     mesh->cell_get_nodes(c, nodes);
     int nnodes = nodes.size();
@@ -352,7 +349,7 @@ void ComputeEdgeError(const AnalyticBase& ana,
 
   auto p = p_vec.ViewComponent<MirrorHost>("edge", false);
   for (int c = 0; c < ncells; c++) {
-    double volume = mesh->cell_volume(c);
+    double volume = mesh->cell_volume<Kokkos::HostSpace>(c);
 
     mesh->cell_get_edges(c, edges);
     int nedges = edges.size();
@@ -402,7 +399,7 @@ void ComputeEdgeMomentsError(const AnalyticBase& ana,
 
   auto p = p_vec.ViewComponent<MirrorHost>("edge_moments", false); // likely this will fail, not sure what it sould be.  fix when it fails.
   for (int c = 0; c < ncells; c++) {
-    double volume = mesh->cell_volume(c);
+    double volume = mesh->cell_volume<Kokkos::HostSpace>(c);
 
     mesh->cell_get_edges(c, edges);
     int nedges = edges.size();

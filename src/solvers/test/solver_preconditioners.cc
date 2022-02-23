@@ -18,7 +18,7 @@
 #include "InverseFactory.hh"
 
 SUITE(SOLVERS) {
-const int N = 125;
+const int N = 2;
 using namespace Amanzi;
 using namespace Amanzi::AmanziSolvers;
 
@@ -104,11 +104,12 @@ TEST(PRECONDITIONERS) {
   for (const auto& prec_name : {
     "identity",
     "diagonal",
-    "ifpack2: ILUT",
-    "ifpack2: RILUK",
-    "hypre: boomer amg",
-    "hypre: euclid",
-    "muelu"
+    //"ifpack2: ILUT",
+    "ifpack2: FAST_ILU"
+    //"ifpack2: RILUK"
+    //"hypre: boomer amg",
+    //"hypre: euclid",
+    //"muelu"
   }) {
     auto solver = get_solver(prec_name, m);
     v.putScalar(0.0);

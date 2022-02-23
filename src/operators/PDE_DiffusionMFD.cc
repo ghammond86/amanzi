@@ -230,7 +230,7 @@ void PDE_DiffusionMFD::UpdateMatricesMixed_little_k_()
       "PDE_DiffusionMFD::UpdateMatricesMixed_little_k_",
       ncells_owned,
       KOKKOS_LAMBDA(const int& c) {
-        AmanziMesh::Entity_ID_View faces;
+        Kokkos::View<AmanziMesh::Entity_ID*,Kokkos::DefaultExecutionSpace> faces;
         mesh->cell_get_faces(c, faces);
         int nfaces = faces.extent(0);  
 
@@ -540,7 +540,7 @@ void PDE_DiffusionMFD::ApplyBCs_Mixed_(
         "PDE_DiffusionMFD::ApplyBCs_Mixed_",
         ncells_owned,
         KOKKOS_LAMBDA(const int& c) {
-          AmanziMesh::Entity_ID_View faces;
+          Kokkos::View<AmanziMesh::Entity_ID*,Kokkos::DefaultExecutionSpace> faces;
           mesh->cell_get_faces(c, faces);
           int nfaces = faces.size();
 
@@ -962,8 +962,8 @@ void PDE_DiffusionMFD::UpdateFlux(const Teuchos::Ptr<const CompositeVector>& u,
         "PDE_DiffusionMFD::UpdateFlux",
         ncells_owned, 
         KOKKOS_LAMBDA(const int& c){
-          AmanziMesh::Entity_ID_View faces;
-          Kokkos::View<int*> dirs;
+          Kokkos::View<AmanziMesh::Entity_ID*,Kokkos::DefaultExecutionSpace> faces;
+          Kokkos::View<int*,Kokkos::DefaultExecutionSpace> dirs;
           mesh->cell_get_faces_and_dirs(c, faces, dirs);
           int nfaces = faces.size();
 

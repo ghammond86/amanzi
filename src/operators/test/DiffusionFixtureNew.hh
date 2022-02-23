@@ -36,7 +36,7 @@
 
 #include "AnalyticBase.hh"
 
-#include "nvToolsExt.h"
+#include "cuda_decl.h"
 
 
 using namespace Amanzi;
@@ -95,7 +95,7 @@ struct DiffusionFixture {
 ****************************************************************** */
 void DiffusionFixture::Init(int d, int nx, const std::string& mesh_file)
 {
-  nvtxRangePushA("DiffusionFixture::Init");
+  nvtxRangePush("DiffusionFixture::Init");
   if (!plist.get())
     plist = Teuchos::getParametersFromXmlFile("test/operator_diffusion_low_order.xml");
 
@@ -123,7 +123,7 @@ template<class PDE_Diffusion_type>
 void DiffusionFixture::Discretize(const std::string& name, 
                                   AmanziMesh::Entity_kind scalar_coef)
 {
-  nvtxRangePushA("DiffusionFixture::Discretize");
+  nvtxRangePush("DiffusionFixture::Discretize");
   op = Teuchos::rcp(new PDE_Diffusion_type(plist->sublist("PK operator").sublist(name), mesh));
   op->Init();
   // modify diffusion coefficient
@@ -133,16 +133,6 @@ void DiffusionFixture::Discretize(const std::string& name,
   auto K = Teuchos::rcp(new TensorVector(K_map));
   const Amanzi::AmanziMesh::Mesh* m = mesh.get(); 
   const AnalyticBase* a = ana.get(); 
-  #if 1
-  K->InitDevice(
-      K->size(), 
-      //size function: size of element c 
-      [=] __device__ (int c) -> const Amanzi::WhetStone::Tensor<DefaultExecutionSpace>& {
-       const AmanziGeometry::Point& xc = m->cell_centroid(c); 
-       return a->TensorDiffusivity(xc,0.0); 
-      }
-  );
-  #else 
   K->Init(
     K->size(), 
     //size function: size of element c 
@@ -151,7 +141,6 @@ void DiffusionFixture::Discretize(const std::string& name,
       return a->TensorDiffusivity_host(xc,0.0); 
     }
   );
-  #endif 
 
   op->SetTensorCoefficient(K);
 
@@ -180,7 +169,7 @@ void DiffusionFixture::Discretize(const std::string& name,
 ****************************************************************** */
 void DiffusionFixture::Setup(const std::string& prec_solver_, bool symmetric_)
 {
-  nvtxRangePushA("DiffusionFixture::Setup");
+  nvtxRangePush("DiffusionFixture::Setup");
   symmetric = symmetric_;
   prec_solver = prec_solver_;
   global_op = op->global_operator();
@@ -216,7 +205,7 @@ void DiffusionFixture::SetScalarCoefficient(
     Operators::PDE_DiffusionFactory& opfactory,
     AmanziMesh::Entity_kind kind)
 {
-  nvtxRangePushA("DiffusionFixture::SetScalarCoefficient");
+  nvtxRangePush("DiffusionFixture::SetScalarCoefficient");
   if (kind == AmanziMesh::Entity_kind::UNKNOWN) return;
   int nents = mesh->num_entities(kind, AmanziMesh::Parallel_type::ALL);
 
@@ -250,7 +239,7 @@ void DiffusionFixture::SetScalarCoefficient(
 ****************************************************************** */
 void DiffusionFixture::SetBCsDirichlet()
 {
-  nvtxRangePushA("DiffusionFixture::SetBCsDirichlet");
+  nvtxRangePush("DiffusionFixture::SetBCsDirichlet");
   auto bc_value = bc->bc_value_host();
   auto bc_model = bc->bc_model_host();
 
@@ -302,7 +291,7 @@ void DiffusionFixture::SetBCsDirichlet()
 ****************************************************************** */
 void DiffusionFixture::Go(double tol, bool initial_guess)
 {
-  nvtxRangePushA("DiffusionFixture::Go");
+  nvtxRangePush("DiffusionFixture::Go");
   global_op->Zero();
   op->UpdateMatrices(Teuchos::null, solution.ptr());
   int ncells = mesh->num_entities(AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_type::OWNED);
@@ -314,33 +303,13 @@ void DiffusionFixture::Go(double tol, bool initial_guess)
     auto rhs_c = rhs.ViewComponent<MirrorHost>("cell", false);
     for (int c = 0; c != ncells; ++c) {
       const auto& xc = mesh->cell_centroid_host(c);
-      rhs_c(c, 0) += ana->source_exact(xc, 0.0) * mesh->cell_volume_host(c);
-          #ifdef OUTPUT_CUDA 
-
-      std::cout<<rhs_c(c,0)<<"("<<ana->source_exact(xc, 0.0)<<"*"<<mesh->cell_volume_host(c)<<") - ";
-    #endif 
+      rhs_c(c, 0) += ana->source_exact(xc, 0.0) * mesh->cell_volume<Kokkos::HostSpace>(c);
     }
-        #ifdef OUTPUT_CUDA 
-
-    std::cout<<std::endl;
-    #endif 
   }
 
 
   auto rhs_c = rhs.ViewComponent("cell", false);
 
-  #ifdef OUTPUT_CUDA
-  std::cout<<"RHC device: "; 
-  // Read the GPU values 
-  Kokkos::parallel_for(
-    "Values",
-    ncells, 
-    KOKKOS_LAMBDA(const int& c){
-      printf("%.4f - ",rhs_c(c,0)); 
-    });
-  Kokkos::fence(); 
-  std::cout<<std::endl;  
-  #endif 
 
   op->ApplyBCs(true, true, true);
   global_op->computeInverse();
@@ -389,19 +358,6 @@ void DiffusionFixture::Go(double tol, bool initial_guess)
     double unorm, ul2_err, uinf_err;
     ComputeFaceError(*ana, mesh, *flux, 0.0, unorm, ul2_err, uinf_err);
 
-    #ifdef OUTPUT_CUDA 
-
-    {
-      auto p = flux->ViewComponent<MirrorHost>("face", false);
-      
-      std::cout<<"flux: "; 
-      for(int c = 0 ; c < p.extent(0); ++c ){
-        std::cout<<p(c,0)<<" - "; 
-      }
-      std::cout<<std::endl;
-    }
-    #endif 
-
     auto MyPID = comm->getRank();
     if (MyPID == 0) {
       auto duration = std::chrono::duration_cast<std::chrono::microseconds>(stop - start);
@@ -430,7 +386,7 @@ void DiffusionFixture::Go(double tol, bool initial_guess)
 ****************************************************************** */
 void DiffusionFixture::MatVec(int nloops)
 {
-  nvtxRangePushA("DiffusionFixture::MatVec");
+  nvtxRangePush("DiffusionFixture::MatVec");
   global_op->Zero();
   op->UpdateMatrices(Teuchos::null, solution.ptr());
   int ncells = mesh->num_entities(AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_type::OWNED);
