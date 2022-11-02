@@ -27,7 +27,7 @@ diff -ruNbB pflotran-0.0.b681066-source/src/pflotran/reaction_sandbox_pnnl_cyber
      PetscInt :: offset_auxiliary
      PetscBool :: store_cumulative_mass
 +    PetscBool :: mobile_biomass
-+    PetscBool :: inhibit_by_nh4
++    PetscReal :: inhibit_by_nh4
      PetscInt, pointer :: nrow(:)
      PetscInt, pointer :: ncol(:)
      PetscInt, pointer :: irow(:,:)
@@ -36,22 +36,24 @@ diff -ruNbB pflotran-0.0.b681066-source/src/pflotran/reaction_sandbox_pnnl_cyber
    CyberCreate%carbon_consumption_species = ''
    CyberCreate%store_cumulative_mass = PETSC_FALSE
 +  CyberCreate%mobile_biomass = PETSC_TRUE
-+  CyberCreate%inhibit_by_nh4 = PETSC_FALSE
++  CyberCreate%inhibit_by_nh4 = UNINITIALIZED_DOUBLE
    nullify(CyberCreate%nrow)
    nullify(CyberCreate%ncol)
    nullify(CyberCreate%irow)
-@@ -272,6 +276,10 @@
+@@ -272,6 +276,12 @@
                             error_string)
        case('STORE_CONSUMPTION_PRODUCTION')
          this%store_cumulative_mass = PETSC_TRUE
 +      case('MOBILE_BIOMASS')
 +        this%mobile_biomass = PETSC_TRUE
 +      case('INHIBIT_BY_NH4')
-+        this%inhibit_by_nh4 = PETSC_TRUE
++        call InputReadDouble(input,option,this%inhibit_by_nh4)
++        call InputErrorMsg(input,option,'NH4 inhibition concentration', &
++                           error_string)
        case default
          call InputKeywordUnrecognized(input,word,error_string,option)
      end select
-@@ -326,9 +334,16 @@
+@@ -326,9 +336,16 @@
    this%doc_id = &
      GetPrimarySpeciesIDFromName(word,reaction,option)
    word = 'C5H7O2N(aq)'
@@ -71,7 +73,7 @@ diff -ruNbB pflotran-0.0.b681066-source/src/pflotran/reaction_sandbox_pnnl_cyber
    word = 'CO2(aq)'
    this%co2_id = &
      GetPrimarySpeciesIDFromName(word,reaction,option)
-@@ -559,7 +574,6 @@
+@@ -559,7 +576,6 @@
  
    PetscInt, parameter :: iphase = 1
    PetscReal :: L_water
@@ -79,7 +81,7 @@ diff -ruNbB pflotran-0.0.b681066-source/src/pflotran/reaction_sandbox_pnnl_cyber
    
    PetscInt :: i, j, irxn
  
-@@ -590,14 +604,18 @@
+@@ -590,14 +606,18 @@
    PetscReal :: temperature_scaling_factor
    PetscReal :: k1_scaled, k2_scaled, k3_scaled, k_deg_scaled
    PetscReal :: volume, rate_scale
@@ -100,7 +102,7 @@ diff -ruNbB pflotran-0.0.b681066-source/src/pflotran/reaction_sandbox_pnnl_cyber
  
    molality_to_molarity = global_auxvar%den_kg(iphase)*1.d-3
      
-@@ -627,9 +645,30 @@
+@@ -627,9 +647,30 @@
          rt_auxvar%pri_act_coef(this%n2_id)*molality_to_molarity
    Cdoc = rt_auxvar%pri_molal(this%doc_id)* &
           rt_auxvar%pri_act_coef(this%doc_id)*molality_to_molarity
@@ -122,8 +124,8 @@ diff -ruNbB pflotran-0.0.b681066-source/src/pflotran/reaction_sandbox_pnnl_cyber
 +
 +  nh4_inhibition = 1.d0
 +  dnh4_inhibition_dnh4 = 0.d0
-+  if (this%inhibit_by_nh4) then
-+    tempreal = (Cnh4 - 1.d6)*threshold_f
++  if (Initialized(this%inhibit_by_nh4)) then
++    tempreal = (Cnh4 - this%inhibit_by_nh4)*threshold_f
 +    nh4_inhibition = 0.5d0 + atan(tempreal)/PI
 +    ! derivative of atan(X) = 1 / (1 + X^2) dX
 +    dnh4_inhibition_dnh4 = threshold_f * &
@@ -134,7 +136,7 @@ diff -ruNbB pflotran-0.0.b681066-source/src/pflotran/reaction_sandbox_pnnl_cyber
    
    k1_scaled = this%k1 * temperature_scaling_factor
    k2_scaled = this%k2 * temperature_scaling_factor
-@@ -670,31 +709,27 @@
+@@ -670,31 +711,27 @@
    rate(1) = u1*r1kin  ! mol/mol biomass/sec
    rate(2) = u2*r2kin
    rate(3) = u3*r3kin
@@ -171,7 +173,7 @@ diff -ruNbB pflotran-0.0.b681066-source/src/pflotran/reaction_sandbox_pnnl_cyber
                   
    ! calculate carbon consumption
    if (this%carbon_consumption_species_id > 0) then
-@@ -705,49 +740,46 @@
+@@ -705,49 +742,46 @@
    
    if (this%store_cumulative_mass) then
      ! rate units are mol/mol biomass/sec
@@ -234,7 +236,7 @@ diff -ruNbB pflotran-0.0.b681066-source/src/pflotran/reaction_sandbox_pnnl_cyber
    endif
    
    if (compute_derivative) then
-@@ -834,37 +866,47 @@
+@@ -834,37 +868,47 @@
      derivative_col(4,irxn) = dr3_do2      
      
      ! fill the Jacobian
