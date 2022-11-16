@@ -481,13 +481,13 @@ set(Sowing_MD5_SUM        3a25a300eba1616e0560bfeed4673d7d)
 #
 set(PETSc_VERSION_MAJOR  3)
 set(PETSc_VERSION_MINOR  16)
-set(PETSc_VERSION_PATCH  0)
+set(PETSc_VERSION_PATCH  2)
 set(PETSc_VERSION  ${PETSc_VERSION_MAJOR}.${PETSc_VERSION_MINOR})
 set(PETSc_ARCHIVE_VERSION ${PETSc_VERSION_MAJOR}.${PETSc_VERSION_MINOR}.${PETSc_VERSION_PATCH})
 set(PETSc_URL_STRING     "https://gitlab.com/petsc/petsc/-/archive/v${PETSc_ARCHIVE_VERSION}")
 set(PETSc_ARCHIVE_FILE   petsc-v${PETSc_VERSION}.tar.gz)
 set(PETSc_SAVEAS_FILE    petsc-${PETSc_VERSION}.tar.gz)
-set(PETSc_MD5_SUM        b231f5dcb7ecbb11c6ccf4caa2472fee)
+set(PETSc_MD5_SUM        e02f070ee81c5425a9b8b95bed8fa8ad)
 
 
 #
@@ -518,28 +518,32 @@ set(SEACAS_MD5_SUM        40452d7badecb05a0e859eeeb010003d)
 #
 # TPL: PFLOTRAN
 #
-set(PFLOTRAN_VERSION_MAJOR 3)
+set(PFLOTRAN_VERSION_MAJOR 4)
 set(PFLOTRAN_VERSION_MINOR 0)
-set(PFLOTRAN_VERSION_PATCH 2)
+set(PFLOTRAN_VERSION_PATCH 0)
 set(PFLOTRAN_VERSION ${PFLOTRAN_VERSION_MAJOR}.${PFLOTRAN_VERSION_MINOR}.${PFLOTRAN_VERSION_PATCH})
 set(PFLOTRAN_URL_STRING     "https://gitlab.com/pflotran/pflotran")
-set(PFLOTRAN_ARCHIVE_FILE   pflotran-9e07f41-28Sep2021.tar.gz)
-set(PFLOTRAN_SAVEAS_FILE    pflotran-9e07f41-28Sep2021.tar.gz)
+set(PFLOTRAN_ARCHIVE_FILE   pflotran-c5f5248-16Nov2022.tar.gz)
+set(PFLOTRAN_SAVEAS_FILE    pflotran-c5f5248-16Nov2022.tar.gz)
 set(PFLOTRAN_MD5_SUM        486b0981a90aa662644b907f0a42e7fe)
 set(PFLOTRAN_GIT_REPOSITORY "https://gitlab.com/pflotran/pflotran.git")
-set(PFLOTRAN_GIT_TAG        "9e07f41")
+set(PFLOTRAN_GIT_TAG        "c5f5248")
 
 #
 # TPL: Alquimia
 #
-set(Alquimia_VERSION_MAJOR 1)
-set(Alquimia_VERSION_MINOR 0)
-set(Alquimia_VERSION_PATCH 9)
-set(Alquimia_VERSION ${Alquimia_VERSION_MAJOR}.${Alquimia_VERSION_MINOR}.${Alquimia_VERSION_PATCH})
-set(Alquimia_URL_STRING     https://github.com/LBL-EESA/alquimia-dev/archive/refs/tags/)
-set(Alquimia_ARCHIVE_FILE   v.${Alquimia_VERSION}.tar.gz)
+#set(Alquimia_VERSION_MAJOR 1)
+#set(Alquimia_VERSION_MINOR 0)
+#set(Alquimia_VERSION_PATCH 9)
+#set(Alquimia_VERSION ${Alquimia_VERSION_MAJOR}.${Alquimia_VERSION_MINOR}.${Alquimia_VERSION_PATCH})
+set(Alquimia_VERSION pflotran-master)
+#set(Alquimia_URL_STRING     https://github.com/LBL-EESA/alquimia-dev/archive/refs/tags)
+set(Alquimia_ARCHIVE_FILE   ${Alquimia_VERSION}.tar.gz)
 set(Alquimia_SAVEAS_FILE    alquimia-dev-${Alquimia_VERSION}.tar.gz)
-set(Alquimia_MD5_SUM        e336e980d17a15cf3d5b6f7892f04b87)
+set(Alquimia_URL_STRING https://github.com/ghammond86/alquimia-dev/archive/refs/heads/glenn)
+#set(Alquimia_MD5_SUM        e336e980d17a15cf3d5b6f7892f04b87)
+set(Alquimia_MD5_SUM        3eeb57cd82040d7cc63171b08b9a6e7a)
+
 
 #
 # TPL: Silo
