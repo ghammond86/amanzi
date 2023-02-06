@@ -523,11 +523,11 @@ set(PFLOTRAN_VERSION_MINOR 0)
 set(PFLOTRAN_VERSION_PATCH 0)
 set(PFLOTRAN_VERSION ${PFLOTRAN_VERSION_MAJOR}.${PFLOTRAN_VERSION_MINOR}.${PFLOTRAN_VERSION_PATCH})
 set(PFLOTRAN_URL_STRING     "https://gitlab.com/pflotran/pflotran")
-set(PFLOTRAN_ARCHIVE_FILE   pflotran-578b45c-06Feb2023.tar.gz)
-set(PFLOTRAN_SAVEAS_FILE    pflotran-578b45c-06Feb2023.tar.gz)
+set(PFLOTRAN_ARCHIVE_FILE   pflotran-bdbabc4-06Feb2023.tar.gz)
+set(PFLOTRAN_SAVEAS_FILE    pflotran-bdbabc4-06Feb2023.tar.gz)
 #set(PFLOTRAN_MD5_SUM        486b0981a90aa662644b907f0a42e7fe)
 set(PFLOTRAN_GIT_REPOSITORY "https://gitlab.com/pflotran/pflotran.git")
-set(PFLOTRAN_GIT_TAG        "578b45c")
+set(PFLOTRAN_GIT_TAG        "bdbabc4")
 
 #
 # TPL: Alquimia
