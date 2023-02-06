@@ -542,7 +542,7 @@ set(Alquimia_ARCHIVE_FILE   ${Alquimia_VERSION}.tar.gz)
 set(Alquimia_SAVEAS_FILE    alquimia-dev-${Alquimia_VERSION}.tar.gz)
 set(Alquimia_URL_STRING https://github.com/ghammond86/alquimia-dev/archive/refs/heads/glenn)
 #set(Alquimia_MD5_SUM        e336e980d17a15cf3d5b6f7892f04b87)
-set(Alquimia_MD5_SUM        3eeb57cd82040d7cc63171b08b9a6e7a)
+#set(Alquimia_MD5_SUM        3eeb57cd82040d7cc63171b08b9a6e7a)
 
 
 #
