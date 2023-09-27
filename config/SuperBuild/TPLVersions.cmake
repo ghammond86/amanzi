@@ -519,12 +519,12 @@ set(SEACAS_MD5_SUM        40452d7badecb05a0e859eeeb010003d)
 # TPL: PFLOTRAN
 #
 set(PFLOTRAN_GIT_REPOSITORY "https://bitbucket.org/pflotran/pflotran.git")
-set(PFLOTRAN_GIT_TAG        "glenn/master-updated-for-sfa-0")
+set(PFLOTRAN_GIT_TAG        "glenn/ats-master-compatible")
 
 #
 # TPL: Alquimia
 #
-set(Alquimia_URL_STRING     https://github.com/ghammond86/alquimia-dev/archive/refs/heads/glenn/pflotran-master.zip)
+set(Alquimia_URL_STRING     https://github.com/LBL-EESA/alquimia-dev/archive/refs/heads/master.zip)
 
 #
 # TPL: Silo
